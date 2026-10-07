@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,6 +29,7 @@ public class EmployeeController {
 
     @PostMapping
     @Operation(summary = "Create a new employee")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EmployeeResponse> createEmployee(
             @Valid @RequestBody CreateEmployeeRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -36,12 +38,14 @@ public class EmployeeController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get employee by ID")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<EmployeeResponse> getEmployeeById(@PathVariable Long id) {
         return ResponseEntity.ok(employeeService.getEmployeeById(id));
     }
 
     @GetMapping
     @Operation(summary = "Get all employees with optional department filter and pagination")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Page<EmployeeResponse>> getAllEmployees(
             @RequestParam(required = false)
             @Parameter(description = "Filter by department name (optional)") String department,
@@ -57,6 +61,7 @@ public class EmployeeController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an employee (partial update supported)")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EmployeeResponse> updateEmployee(
             @PathVariable Long id,
             @Valid @RequestBody UpdateEmployeeRequest request) {
@@ -65,6 +70,7 @@ public class EmployeeController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete an employee (also deletes their profile)")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
         return ResponseEntity.noContent().build(); 
@@ -72,6 +78,7 @@ public class EmployeeController {
 
     @PostMapping("/{employeeId}/profile")
     @Operation(summary = "Create or update employee profile")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EmployeeProfileResponse> createOrUpdateProfile(
             @PathVariable Long employeeId,
             @Valid @RequestBody EmployeeProfileRequest request) {
@@ -81,6 +88,7 @@ public class EmployeeController {
 
     @GetMapping("/{employeeId}/profile")
     @Operation(summary = "Get employee profile")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<EmployeeProfileResponse> getProfile(@PathVariable Long employeeId) {
         return ResponseEntity.ok(employeeService.getProfile(employeeId));
     }
