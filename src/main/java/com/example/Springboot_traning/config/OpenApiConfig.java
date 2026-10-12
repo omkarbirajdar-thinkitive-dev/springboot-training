@@ -1,9 +1,11 @@
 package com.example.Springboot_traning.config;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -18,10 +20,17 @@ public class OpenApiConfig {
                         .description("""
                                 Spring Boot REST API:
                                 Dependency Injection, JPA relationships, REST mappings,
-                                global exception handling, Bean Validation, and Swagger/OpenAPI.
+                                global exception handling, Bean Validation, Keycloak OAuth2, and Swagger/OpenAPI.
                                 """)
-                        .version("1.0.0")
+                        .version("2.0.0")
                         .license(new License()
-                                .name("")));
+                                .name("")))
+                .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
+                .components(new Components()
+                        .addSecuritySchemes("Bearer Authentication",
+                                new SecurityScheme()
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .bearerFormat("JWT")
+                                        .scheme("bearer")));
     }
 }
