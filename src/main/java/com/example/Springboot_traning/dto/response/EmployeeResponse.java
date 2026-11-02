@@ -20,4 +20,6 @@ public class EmployeeResponse {
 
     private DepartmentResponse department; 
     private EmployeeProfileResponse profile; 
+    private String username;
+    private String temporaryPassword;
 }

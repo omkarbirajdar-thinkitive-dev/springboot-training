@@ -1,0 +1,37 @@
+{
+  "name": "employee-management-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "orval && tsc -b && vite build",
+    "typecheck": "tsc -b",
+    "api:generate": "orval"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@mui/icons-material": "^7.3.2",
+    "@mui/material": "^7.3.2",
+    "@tanstack/react-query": "^5.87.1",
+    "@types/react-router-dom": "^5.3.3",
+    "axios": "^1.12.2",
+    "date-fns": "^4.4.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-hook-form": "^7.62.0",
+    "react-router-dom": "^7.18.5",
+    "recharts": "^3.10.1",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.2",
+    "orval": "^7.11.2",
+    "typescript": "~5.9.2",
+    "vite": "^7.1.5"
+  }
+}

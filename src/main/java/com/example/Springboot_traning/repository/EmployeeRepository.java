@@ -17,4 +17,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     Page<Employee> findByOptionalDepartment(@Param("department") String department, Pageable pageable);
 
     boolean existsByEmail(String email);
+
+    java.util.Optional<Employee> findByEmailIgnoreCase(String email);
+
+    @Query("SELECT e FROM Employee e WHERE LOWER(e.email) = LOWER(:identifier) " +
+           "OR LOWER(e.email) LIKE LOWER(CONCAT(:identifier, '@%')) " +
+           "OR LOWER(e.firstName) = LOWER(:identifier) " +
+           "OR LOWER(CONCAT(e.firstName, ' ', e.lastName)) = LOWER(:identifier) " +
+           "OR LOWER(CONCAT(e.firstName, e.lastName)) = LOWER(REPLACE(:identifier, '_', ''))")
+    java.util.List<Employee> searchByIdentifier(@Param("identifier") String identifier);
+
+    java.util.Optional<Employee> findFirstByOrderByIdAsc();
 }

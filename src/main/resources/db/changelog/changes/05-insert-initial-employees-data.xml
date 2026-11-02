@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="05-insert-initial-employees-data" author="omkar">
+        <insert tableName="employees">
+            <column name="first_name" value="Alice"/>
+            <column name="last_name" value="Kumar"/>
+            <column name="email" value="alice.kumar@company.com"/>
+            <column name="salary" valueNumeric="85000.00"/>
+            <column name="department_id" valueComputed="(SELECT id FROM departments WHERE name='Engineering')"/>
+        </insert>
+        <insert tableName="employees">
+            <column name="first_name" value="Bob"/>
+            <column name="last_name" value="Sharma"/>
+            <column name="email" value="bob.sharma@company.com"/>
+            <column name="salary" valueNumeric="72000.00"/>
+            <column name="department_id" valueComputed="(SELECT id FROM departments WHERE name='Engineering')"/>
+        </insert>
+        <insert tableName="employees">
+            <column name="first_name" value="Carol"/>
+            <column name="last_name" value="Patel"/>
+            <column name="email" value="carol.patel@company.com"/>
+            <column name="salary" valueNumeric="65000.00"/>
+            <column name="department_id" valueComputed="(SELECT id FROM departments WHERE name='Human Resources')"/>
+        </insert>
+        <insert tableName="employees">
+            <column name="first_name" value="Dave"/>
+            <column name="last_name" value="Singh"/>
+            <column name="email" value="dave.singh@company.com"/>
+            <column name="salary" valueNumeric="78000.00"/>
+            <column name="department_id" valueComputed="(SELECT id FROM departments WHERE name='Marketing')"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

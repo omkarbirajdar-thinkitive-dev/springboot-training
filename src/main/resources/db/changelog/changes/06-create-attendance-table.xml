@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="06-create-attendance-table" author="omkar">
+        <createTable tableName="attendance">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="employee_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="check_in_time" type="TIME">
+                <constraints nullable="true"/>
+            </column>
+            <column name="check_out_time" type="TIME">
+                <constraints nullable="true"/>
+            </column>
+            <column name="status" type="VARCHAR(20)" defaultValue="PRESENT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="notes" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <!-- FK: attendance.employee_id → employees.id -->
+        <addForeignKeyConstraint
+                baseTableName="attendance"
+                baseColumnNames="employee_id"
+                constraintName="fk_attendance_employee"
+                referencedTableName="employees"
+                referencedColumnNames="id"
+                onDelete="CASCADE"
+                onUpdate="RESTRICT"/>
+
+        <!-- One attendance record per employee per date -->
+        <addUniqueConstraint
+                tableName="attendance"
+                columnNames="employee_id, date"
+                constraintName="uq_attendance_employee_date"/>
+    </changeSet>
+
+</databaseChangeLog>
