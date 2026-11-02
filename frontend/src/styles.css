@@ -1,0 +1,103 @@
+/* ─── Reset & Root ─────────────────────────────────────── */
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  min-width: 320px;
+  background:
+    radial-gradient(ellipse at 92% 8%, rgba(201, 225, 210, .45), transparent 28rem),
+    linear-gradient(135deg, #f2f5f1 0%, #f8f9f6 55%, #eef4f1 100%);
+}
+
+#root {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+button, input { font: inherit; }
+
+/* ─── Login page ────────────────────────────────────────── */
+.login-wrap {
+  height: 100%;
+  min-height: 100%;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: minmax(320px, .9fr) 1.1fr;
+}
+.login-aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 44px clamp(24px, 6vw, 88px);
+  color: white;
+  background: #0e2f2a;
+}
+.login-aside h1 {
+  max-width: 500px;
+  margin: auto 0;
+  font-size: clamp(38px, 5vw, 62px);
+  line-height: 1.06;
+}
+.login-aside p { max-width: 400px; color: #c2d1cb; line-height: 1.7; }
+.login-form-wrap { display: grid; place-items: center; padding: 28px; }
+.login-panel { width: min(100%, 420px); }
+.login-panel h2 {
+  margin: 0 0 8px;
+  color: #173c35;
+  font-family: Georgia, serif;
+  font-size: 34px;
+  font-weight: 500;
+}
+.login-panel p { margin: 0 0 28px; color: #6c7c76; }
+.login-panel form { display: grid; gap: 16px; }
+.form-hint {
+  margin-top: 22px;
+  padding: 12px 14px;
+  border-left: 3px solid #c75a3a;
+  background: #f4eee8;
+  color: #6c6158;
+  font-size: 13px;
+}
+
+/* ─── Brand mark (used in sidebar too) ─────────────────── */
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  border: 1px solid rgba(255,255,255,.4);
+  border-radius: 50%;
+  color: #d2a274;
+  font-family: Georgia, serif;
+  font-size: 19px;
+}
+.brand-name { font-family: Georgia, serif; font-size: 20px; }
+.brand-caption { color: #b9cbc5; font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; }
+
+/* ─── Profile form grid ─────────────────────────────────── */
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* ─── Mobile ────────────────────────────────────────────── */
+@media (max-width: 760px) {
+  .login-wrap { grid-template-columns: 1fr; }
+  .login-aside { min-height: 220px; padding: 24px; }
+  .login-aside h1 { margin: 24px 0 6px; font-size: 36px; }
+  .login-aside p { margin: 8px 0; }
+  .login-form-wrap { padding: 32px 22px; }
+  .profile-grid { grid-template-columns: 1fr; }
+}

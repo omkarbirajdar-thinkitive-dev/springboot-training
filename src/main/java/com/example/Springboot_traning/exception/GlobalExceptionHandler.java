@@ -52,9 +52,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex, HttpServletRequest request) {
-
+        ex.printStackTrace();
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR,
-                "An unexpected error occurred. Please try again later.",
+                "Error: " + ex.getMessage(),
                 request.getRequestURI());
     }
 

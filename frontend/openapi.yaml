@@ -1,0 +1,261 @@
+openapi: 3.0.3
+info:
+  title: Employee Management API
+  version: 1.0.0
+  description: Local contract for the Spring Boot workforce API. Refresh from /v3/api-docs when backend endpoints change.
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/auth/login:
+    post:
+      operationId: login
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JwtResponse'
+  /api/employees:
+    get:
+      operationId: listEmployees
+      tags: [Employees]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: department, in: query, required: false, schema: { type: string } }
+        - { name: page, in: query, required: false, schema: { type: integer, default: 0 } }
+        - { name: size, in: query, required: false, schema: { type: integer, default: 10 } }
+      responses:
+        '200':
+          description: Employee page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeePage'
+    post:
+      operationId: createEmployee
+      tags: [Employees]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEmployeeRequest'
+      responses:
+        '201':
+          description: Created employee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+  /api/employees/{id}:
+    put:
+      operationId: updateEmployee
+      tags: [Employees]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEmployeeRequest'
+      responses:
+        '200':
+          description: Updated employee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+    delete:
+      operationId: deleteEmployee
+      tags: [Employees]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '204': { description: Deleted }
+  /api/employees/{employeeId}/profile:
+    post:
+      operationId: upsertEmployeeProfile
+      tags: [Employees]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: employeeId, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileRequest'
+      responses:
+        '201':
+          description: Saved profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+  /api/departments:
+    get:
+      operationId: listDepartments
+      tags: [Departments]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Departments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Department'
+    post:
+      operationId: createDepartment
+      tags: [Departments]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentRequest'
+      responses:
+        '201':
+          description: Created department
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+  /api/departments/{id}:
+    put:
+      operationId: updateDepartment
+      tags: [Departments]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentUpdateRequest'
+      responses:
+        '200':
+          description: Updated department
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+    delete:
+      operationId: deleteDepartment
+      tags: [Departments]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '204': { description: Deleted }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string }
+    JwtResponse:
+      type: object
+      properties:
+        token: { type: string }
+        type: { type: string }
+    Department:
+      type: object
+      required: [id, name, location, employeeCount]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        location: { type: string }
+        employeeCount: { type: integer }
+    Employee:
+      type: object
+      required: [id, firstName, lastName, email, salary]
+      properties:
+        id: { type: integer, format: int64 }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        salary: { type: number, format: decimal }
+        department:
+          allOf:
+            - $ref: '#/components/schemas/Department'
+        profile:
+          allOf:
+            - $ref: '#/components/schemas/Profile'
+          nullable: true
+    Profile:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        phone: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+        dateOfBirth: { type: string, format: date, nullable: true }
+    EmployeePage:
+      type: object
+      required: [content, totalElements, totalPages, number, size, first, last]
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/Employee' }
+        totalElements: { type: integer, format: int64 }
+        totalPages: { type: integer }
+        number: { type: integer }
+        size: { type: integer }
+        first: { type: boolean }
+        last: { type: boolean }
+    CreateEmployeeRequest:
+      type: object
+      required: [firstName, lastName, email, salary, departmentId]
+      properties:
+        firstName: { type: string, minLength: 2, maxLength: 50 }
+        lastName: { type: string, minLength: 2, maxLength: 50 }
+        email: { type: string, format: email }
+        salary: { type: number, minimum: 0, exclusiveMinimum: true }
+        departmentId: { type: integer, format: int64 }
+    UpdateEmployeeRequest:
+      type: object
+      properties:
+        firstName: { type: string, minLength: 2, maxLength: 50, nullable: true }
+        lastName: { type: string, minLength: 2, maxLength: 50, nullable: true }
+        email: { type: string, format: email, nullable: true }
+        salary: { type: number, minimum: 0, exclusiveMinimum: true, nullable: true }
+        departmentId: { type: integer, format: int64, nullable: true }
+    ProfileRequest:
+      type: object
+      properties:
+        phone: { type: string, nullable: true, pattern: '^[+]?[0-9]{7,15}$' }
+        address: { type: string, maxLength: 300, nullable: true }
+        dateOfBirth: { type: string, format: date, nullable: true }
+    DepartmentRequest:
+      type: object
+      required: [name, location]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 100 }
+        location: { type: string, maxLength: 200 }
+    DepartmentUpdateRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 2, maxLength: 100, nullable: true }
+        location: { type: string, maxLength: 200, nullable: true }

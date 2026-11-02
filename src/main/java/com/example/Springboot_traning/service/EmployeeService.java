@@ -22,4 +22,8 @@ public interface EmployeeService {
     EmployeeProfileResponse createOrUpdateProfile(Long employeeId, EmployeeProfileRequest request);
 
     EmployeeProfileResponse getProfile(Long employeeId);
+
+    EmployeeResponse getMyEmployee(String usernameOrEmail);
+
+    EmployeeResponse updateMyProfile(String usernameOrEmail, EmployeeProfileRequest request);
 }

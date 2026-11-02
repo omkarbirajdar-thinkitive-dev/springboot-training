@@ -8,8 +8,15 @@
   "resetPasswordAllowed": false,
   "editUsernameAllowed": false,
   "bruteForceProtected": true,
+  "accessTokenLifespan": 86400,
+  "ssoSessionIdleTimeout": 86400,
+  "ssoSessionMaxLifespan": 86400,
   "roles": {
     "realm": [
+      {
+        "name": "SUPER_ADMIN",
+        "description": "Super Administrator with exclusive rights to manage Admins"
+      },
       {
         "name": "ADMIN",
         "description": "Administrator role with full access"
@@ -53,6 +60,25 @@
     }
   ],
   "users": [
+    {
+      "username": "superadmin",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "superadmin@workforce.com",
+      "firstName": "Super",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "superadmin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "SUPER_ADMIN",
+        "ADMIN"
+      ]
+    },
     {
       "username": "admin",
       "enabled": true,
