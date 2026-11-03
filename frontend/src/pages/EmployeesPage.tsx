@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
@@ -12,6 +12,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Pagination,
   Table,
   TableBody,
   TableCell,
@@ -42,7 +43,6 @@ export default function EmployeesPage() {
   const { isAdmin, isSuperAdmin } = useSession()
   const [page, setPage] = useState(0)
   const [departmentFilter, setDepartmentFilter] = useState('')
-  const [allEmployees, setAllEmployees] = useState<Employee[]>([])
 
   // Dialogs
   const [employeeDialog, setEmployeeDialog] = useState<Employee | null | false>(false)
@@ -55,48 +55,23 @@ export default function EmployeesPage() {
 
   const queryClient = useQueryClient()
   const refresh = () => {
-    setPage(0)
-    setAllEmployees([])
     queryClient.invalidateQueries()
   }
 
-  const pageSize = 12
+  // 4 employees per page so 3-4 scroll cleanly within viewport with pagination below
+  const pageSize = 4
   const employeeQuery = useListEmployees({ page, size: pageSize, department: departmentFilter || undefined })
   const departmentQuery = useListDepartments()
   const departments = departmentQuery.data ?? []
 
-  // Accumulate employees for lazy loading
-  useEffect(() => {
-    if (employeeQuery.data?.content) {
-      const newItems = employeeQuery.data.content
-      if (page === 0) {
-        setAllEmployees(newItems)
-      } else {
-        setAllEmployees((prev) => {
-          const existingIds = new Set(prev.map((e) => e.id))
-          const filtered = newItems.filter((e) => !existingIds.has(e.id))
-          return [...prev, ...filtered]
-        })
-      }
-    }
-  }, [employeeQuery.data, page])
+  const employees = employeeQuery.data?.content ?? []
+  const totalPages = employeeQuery.data?.totalPages ?? 1
+  const totalElements = employeeQuery.data?.totalElements ?? 0
 
-  // Reset list when filter changes
+  // Reset page when filter changes
   const handleDepartmentChange = (dept: string) => {
     setDepartmentFilter(dept)
     setPage(0)
-    setAllEmployees([])
-  }
-
-  // Infinite scroll listener for lazy loading
-  const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
-    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100
-    const totalPages = employeeQuery.data?.totalPages ?? 1
-
-    if (isNearBottom && !employeeQuery.isFetching && page < totalPages - 1) {
-      setPage((prev) => prev + 1)
-    }
   }
 
   const employeeDelete = useMutation({
@@ -131,9 +106,6 @@ export default function EmployeesPage() {
     }
     handleCloseMenu()
   }
-
-  const totalElements = employeeQuery.data?.totalElements ?? allEmployees.length
-  const hasMore = page < (employeeQuery.data?.totalPages ?? 1) - 1
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, width: '100%', overflow: 'hidden' }}>
@@ -211,7 +183,7 @@ export default function EmployeesPage() {
               Employee directory
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.2, fontSize: { xs: 11, sm: 12 } }}>
-              Showing {allEmployees.length} of {totalElements} team members {hasMore && '· scroll for more'}
+              Page {page + 1} of {Math.max(1, totalPages)} &middot; {totalElements} total employees
             </Typography>
           </Box>
           <TextField
@@ -237,9 +209,8 @@ export default function EmployeesPage() {
           </Alert>
         )}
 
-        {/* Scrollable Container with Infinite Lazy-loading */}
+        {/* Scrollable Container with Current Page's Employees */}
         <Box
-          onScroll={handleTableScroll}
           sx={{
             flex: 1,
             minHeight: 0,
@@ -250,7 +221,7 @@ export default function EmployeesPage() {
         >
           {/* MOBILE VIEW (< sm): Clean Employee Cards for touch screens */}
           <Box sx={{ display: { xs: 'flex', sm: 'none' }, flexDirection: 'column', gap: 1, p: 1.5 }}>
-            {allEmployees.map((emp) => (
+            {employees.map((emp) => (
               <Box
                 key={emp.id}
                 onClick={() => setPreviewEmployee(emp)}
@@ -320,7 +291,7 @@ export default function EmployeesPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {allEmployees.map((emp) => (
+                {employees.map((emp) => (
                   <TableRow
                     key={emp.id}
                     hover
@@ -378,7 +349,7 @@ export default function EmployeesPage() {
           </Box>
 
           {/* Initial loading state */}
-          {employeeQuery.isLoading && allEmployees.length === 0 && (
+          {employeeQuery.isLoading && (
             <Box sx={{ py: 8, textAlign: 'center' }}>
               <CircularProgress size={28} />
               <Typography variant="body2" sx={{ mt: 1.5, color: 'text.secondary' }}>
@@ -388,58 +359,55 @@ export default function EmployeesPage() {
           )}
 
           {/* Empty state */}
-          {!employeeQuery.isLoading && allEmployees.length === 0 && (
+          {!employeeQuery.isLoading && employees.length === 0 && (
             <Box sx={{ py: 8, textAlign: 'center', color: 'text.secondary' }}>
               No employees found matching the criteria.
             </Box>
           )}
-
-          {/* Lazy loading spinner at bottom */}
-          {employeeQuery.isFetching && page > 0 && (
-            <Box sx={{ py: 2, textAlign: 'center', bgcolor: '#fafcfb' }}>
-              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1.5 }}>
-                <CircularProgress size={18} />
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                  Loading more employees…
-                </Typography>
-              </Box>
-            </Box>
-          )}
         </Box>
 
-        {/* Card Footer summary */}
+        {/* Card Footer: numbered pagination bar */}
         <Box
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
-            alignItems: { xs: 'flex-start', sm: 'center' },
+            alignItems: { xs: 'center', sm: 'center' },
             justifyContent: 'space-between',
-            gap: 1,
+            gap: { xs: 1, sm: 1.5 },
             px: { xs: 2, sm: 2.5 },
             py: { xs: 1, sm: 1.25 },
             borderTop: '1px solid #e6ece7',
             bgcolor: '#ffffff',
-            color: 'text.secondary',
-            fontSize: 12,
             flexShrink: 0,
           }}
         >
-          <span>
-            {allEmployees.length >= totalElements
-              ? `All ${totalElements} employees loaded`
-              : `Showing ${allEmployees.length} of ${totalElements} employees (scroll down to load more)`}
-          </span>
-          {hasMore && (
-            <Button
-              size="small"
-              variant="text"
-              onClick={() => setPage((p) => p + 1)}
-              disabled={employeeQuery.isFetching}
-              sx={{ textTransform: 'none', fontSize: 12, fontWeight: 600, py: 0, px: 0 }}
-            >
-              Load next batch
-            </Button>
-          )}
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
+            {totalElements > 0
+              ? `Showing ${page * pageSize + 1}–${Math.min((page + 1) * pageSize, totalElements)} of ${totalElements} employees`
+              : 'No employees to display'}
+          </Typography>
+
+          <Pagination
+            count={Math.max(1, totalPages)}
+            page={page + 1}
+            onChange={(_, newPage) => setPage(newPage - 1)}
+            color="primary"
+            shape="rounded"
+            size="small"
+            showFirstButton
+            showLastButton
+            sx={{
+              '& .MuiPaginationItem-root': {
+                fontWeight: 600,
+                fontSize: 12.5,
+                color: '#173c35',
+              },
+              '& .MuiPaginationItem-root.Mui-selected': {
+                bgcolor: '#176b5b !important',
+                color: '#ffffff !important',
+              },
+            }}
+          />
         </Box>
       </ContentCard>
 
