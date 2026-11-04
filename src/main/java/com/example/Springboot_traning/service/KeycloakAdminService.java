@@ -52,6 +52,30 @@ public class KeycloakAdminService {
         throw new IllegalStateException("Could not obtain admin access token from Keycloak");
     }
 
+    @org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
+    public void ensureExtendedSessionLifespan() {
+        try {
+            String adminToken = getAdminAccessToken();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(adminToken);
+
+            Map<String, Object> update = new HashMap<>();
+            update.put("accessTokenLifespan", 86400); // 24 hours
+            update.put("ssoSessionIdleTimeout", 86400);
+            update.put("ssoSessionMaxLifespan", 86400);
+            update.put("clientSessionIdleTimeout", 86400);
+            update.put("clientSessionMaxLifespan", 86400);
+
+            String realmUrl = keycloakServerUrl + "/admin/realms/" + keycloakRealm;
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(update, headers);
+            restTemplate.exchange(realmUrl, HttpMethod.PUT, request, Void.class);
+            System.out.println("[INFO] Keycloak realm session lifespan verified & configured to 24 hours (86400s).");
+        } catch (Exception ex) {
+            System.err.println("[WARN] Could not auto-sync Keycloak token lifespan: " + ex.getMessage());
+        }
+    }
+
     public String provisionUser(String username, String email, String firstName, String lastName, String password, String role) {
         String adminToken = getAdminAccessToken();
 
