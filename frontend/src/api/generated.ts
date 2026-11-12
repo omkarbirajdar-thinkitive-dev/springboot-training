@@ -56,9 +56,14 @@ export interface Employee {
   department?: Department;
   /** @nullable */
   profile?: EmployeeProfile;
+}
+
+export type EmployeeCreatedAllOf = {
   username?: string;
   temporaryPassword?: string;
-}
+};
+
+export type EmployeeCreated = Employee & EmployeeCreatedAllOf;
 
 export interface Profile {
   id?: number;
@@ -322,7 +327,7 @@ export const createEmployee = (
 ) => {
       
       
-      return customInstance<Employee>(
+      return customInstance<EmployeeCreated>(
       {url: `/api/employees`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createEmployeeRequest, signal

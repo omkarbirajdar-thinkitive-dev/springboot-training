@@ -66,6 +66,13 @@ export const payrollApi = {
       method: 'GET',
     }),
 
+  downloadPdf: (id: number) =>
+    customInstance<Blob>({
+      url: `/api/payslips/${id}/download`,
+      method: 'GET',
+      responseType: 'blob',
+    }),
+
   getEmployeePayslips: (employeeId: number) =>
     customInstance<PayslipRecord[]>({
       url: `/api/payslips/employee/${employeeId}`,

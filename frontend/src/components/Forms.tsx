@@ -28,6 +28,7 @@ import CakeOutlined from '@mui/icons-material/CakeOutlined'
 import AttachMoneyOutlined from '@mui/icons-material/AttachMoneyOutlined'
 
 import { createEmployee, upsertEmployeeProfile, updateEmployee } from '../api/generated'
+import type { EmployeeCreated } from '../api/generated'
 import type { Department, Employee } from '../api/contracts'
 import { apiMessage } from '../error'
 
@@ -64,7 +65,7 @@ export function EmployeeDialog({
   })
 
   const mutation = useMutation({
-    mutationFn: async (values: EmployeeValues) => {
+    mutationFn: async (values: EmployeeValues): Promise<EmployeeCreated> => {
       if (employee) {
         // Edit flow: update both core and profile
         const empRes = await updateEmployee(employee.id, {

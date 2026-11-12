@@ -20,5 +20,7 @@ public interface PayrollService {
 
     PayslipResponse publishPayslip(Long id);
 
-    PayslipResponse getPayslipById(Long id);
+    PayslipResponse getPayslipById(Long id, String usernameOrEmail, boolean isAdmin);
+
+    byte[] downloadPayslipPdf(Long id, String usernameOrEmail, boolean isAdmin);
 }

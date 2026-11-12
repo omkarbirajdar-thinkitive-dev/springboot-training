@@ -83,8 +83,10 @@ public class LeaveController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get leave request by ID")
-    public ResponseEntity<LeaveResponse> getLeaveById(@PathVariable Long id) {
-        LeaveResponse response = leaveService.getLeaveById(id);
+    public ResponseEntity<LeaveResponse> getLeaveById(@PathVariable Long id, Authentication authentication) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        LeaveResponse response = leaveService.getLeaveById(id, extractUsername(authentication), isAdmin);
         return ResponseEntity.ok(response);
     }
 

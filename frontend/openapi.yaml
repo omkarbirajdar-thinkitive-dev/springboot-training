@@ -55,7 +55,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Employee'
+                $ref: '#/components/schemas/EmployeeCreated'
   /api/employees/{id}:
     put:
       operationId: updateEmployee
@@ -205,6 +205,13 @@ components:
           allOf:
             - $ref: '#/components/schemas/Profile'
           nullable: true
+    EmployeeCreated:
+      allOf:
+        - $ref: '#/components/schemas/Employee'
+        - type: object
+          properties:
+            username: { type: string }
+            temporaryPassword: { type: string }
     Profile:
       type: object
       properties:

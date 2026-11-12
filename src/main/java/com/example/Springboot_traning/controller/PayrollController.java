@@ -12,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -84,9 +86,23 @@ public class PayrollController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get payslip by ID")
-    public ResponseEntity<PayslipResponse> getPayslipById(@PathVariable Long id) {
-        PayslipResponse response = payrollService.getPayslipById(id);
+    public ResponseEntity<PayslipResponse> getPayslipById(@PathVariable Long id, Authentication authentication) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        PayslipResponse response = payrollService.getPayslipById(id, extractUsername(authentication), isAdmin);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(value = "/{id}/download", produces = MediaType.APPLICATION_PDF_VALUE)
+    @Operation(summary = "Download an authorized payslip as PDF")
+    public ResponseEntity<byte[]> downloadPayslip(@PathVariable Long id, Authentication authentication) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        byte[] pdf = payrollService.downloadPayslipPdf(id, extractUsername(authentication), isAdmin);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"payslip-" + id + ".pdf\"")
+                .body(pdf);
     }
 
     @PutMapping("/{id}/publish")
