@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   Alert,
   Box,
@@ -20,6 +20,7 @@ import {
 } from '@mui/material'
 import ReceiptLongRounded from '@mui/icons-material/ReceiptLongRounded'
 import PrintRounded from '@mui/icons-material/PrintRounded'
+import DownloadRounded from '@mui/icons-material/DownloadRounded'
 import VisibilityOutlined from '@mui/icons-material/VisibilityOutlined'
 import MonetizationOnRounded from '@mui/icons-material/MonetizationOnRounded'
 import TrendingUpRounded from '@mui/icons-material/TrendingUpRounded'
@@ -47,6 +48,18 @@ export default function MyPayslipsPage() {
   const payslipsQuery = useQuery({
     queryKey: ['payslips', 'me'],
     queryFn: () => payrollApi.getMyPayslips(),
+  })
+
+  const downloadMutation = useMutation({
+    mutationFn: (payslip: PayslipRecord) => payrollApi.downloadPdf(payslip.id),
+    onSuccess: (pdf, payslip) => {
+      const url = URL.createObjectURL(pdf)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `payslip-${payslip.year}-${String(payslip.month).padStart(2, '0')}.pdf`
+      link.click()
+      URL.revokeObjectURL(url)
+    },
   })
 
   const payslips: PayslipRecord[] = payslipsQuery.data ?? []
@@ -97,6 +110,11 @@ export default function MyPayslipsPage() {
         {payslipsQuery.isError && (
           <Alert severity="error" sx={{ mx: 2, mt: 1.5 }}>
             {apiMessage(payslipsQuery.error)}
+          </Alert>
+        )}
+        {downloadMutation.isError && (
+          <Alert severity="error" sx={{ mx: 2, mt: 1.5 }}>
+            {apiMessage(downloadMutation.error)}
           </Alert>
         )}
 
@@ -156,14 +174,27 @@ export default function MyPayslipsPage() {
                         />
                       </TableCell>
                       <TableCell align="right">
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          startIcon={<VisibilityOutlined />}
-                          onClick={() => setSelectedPayslip(p)}
-                        >
-                          View Voucher
-                        </Button>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={<VisibilityOutlined />}
+                            onClick={() => setSelectedPayslip(p)}
+                          >
+                            View
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            aria-label={`Download ${MONTH_NAMES[p.month - 1]} ${p.year} payslip PDF`}
+                            title="Download PDF"
+                            startIcon={<DownloadRounded />}
+                            disabled={downloadMutation.isPending}
+                            onClick={() => downloadMutation.mutate(p)}
+                          >
+                            PDF
+                          </Button>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   )
