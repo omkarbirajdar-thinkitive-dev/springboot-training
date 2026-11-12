@@ -23,7 +23,7 @@ public interface LeaveService {
 
     void cancelLeave(Long id, String usernameOrEmail);
 
-    LeaveResponse getLeaveById(Long id);
+    LeaveResponse getLeaveById(Long id, String usernameOrEmail, boolean isAdmin);
 
     long getPendingLeavesCount();
 }

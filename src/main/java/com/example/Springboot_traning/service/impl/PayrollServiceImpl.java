@@ -10,14 +10,21 @@ import com.example.Springboot_traning.repository.AllowanceRepository;
 import com.example.Springboot_traning.repository.EmployeeRepository;
 import com.example.Springboot_traning.repository.PayslipRepository;
 import com.example.Springboot_traning.service.PayrollService;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.Locale;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -145,10 +152,65 @@ public class PayrollServiceImpl implements PayrollService {
 
     @Override
     @Transactional(readOnly = true)
-    public PayslipResponse getPayslipById(Long id) {
+    public PayslipResponse getPayslipById(Long id, String usernameOrEmail, boolean isAdmin) {
         Payslip payslip = payslipRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Payslip", "id", id));
+
+        if (!isAdmin) {
+            Employee employee = resolveEmployee(usernameOrEmail);
+            if (!payslip.getEmployee().getId().equals(employee.getId())
+                    || payslip.getStatus() != PayslipStatus.PUBLISHED) {
+                throw new ResourceNotFoundException("Payslip", "id", id);
+            }
+        }
+
         return mapToResponse(payslip);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] downloadPayslipPdf(Long id, String usernameOrEmail, boolean isAdmin) {
+        PayslipResponse payslip = getPayslipById(id, usernameOrEmail, isAdmin);
+        try (PDDocument document = new PDDocument(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            PDPage page = new PDPage();
+            document.addPage(page);
+
+            try (PDPageContentStream content = new PDPageContentStream(document, page)) {
+                PDType1Font regular = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
+                PDType1Font bold = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
+                writePdfLine(content, bold, 18, 54, 740, "Workforce Management - Payslip");
+                writePdfLine(content, regular, 11, 54, 710,
+                        "Pay period: " + payslip.getMonth() + "/" + payslip.getYear());
+                writePdfLine(content, regular, 11, 54, 690, "Employee: " + payslip.getEmployeeName());
+                writePdfLine(content, regular, 11, 54, 672, "Department: " + payslip.getDepartmentName());
+                writePdfLine(content, regular, 11, 54, 642, "Basic salary: " + formatPdfCurrency(payslip.getBasicSalary()));
+                writePdfLine(content, regular, 11, 54, 624, "Allowances: " + formatPdfCurrency(payslip.getTotalAllowances()));
+                writePdfLine(content, regular, 11, 54, 606, "Gross salary: " + formatPdfCurrency(payslip.getGrossSalary()));
+                writePdfLine(content, regular, 11, 54, 576, "Tax deduction: " + formatPdfCurrency(payslip.getTaxDeduction()));
+                writePdfLine(content, regular, 11, 54, 558, "Other deductions: " + formatPdfCurrency(payslip.getOtherDeductions()));
+                writePdfLine(content, bold, 13, 54, 524, "Net salary: " + formatPdfCurrency(payslip.getNetSalary()));
+                writePdfLine(content, regular, 9, 54, 488,
+                        "Status: " + payslip.getStatus() + " | Reference: PAY-" + payslip.getId());
+            }
+
+            document.save(output);
+            return output.toByteArray();
+        } catch (java.io.IOException exception) {
+            throw new IllegalStateException("Unable to generate payslip PDF", exception);
+        }
+    }
+
+    private void writePdfLine(PDPageContentStream content, PDType1Font font, int fontSize,
+                              float x, float y, String text) throws java.io.IOException {
+        content.beginText();
+        content.setFont(font, fontSize);
+        content.newLineAtOffset(x, y);
+        content.showText(text == null ? "" : text.replaceAll("[^\\x20-\\x7E]", "?"));
+        content.endText();
+    }
+
+    private String formatPdfCurrency(BigDecimal amount) {
+        return String.format(Locale.US, "$%,.2f", amount == null ? BigDecimal.ZERO : amount);
     }
 
     private PayslipResponse mapToResponse(Payslip p) {

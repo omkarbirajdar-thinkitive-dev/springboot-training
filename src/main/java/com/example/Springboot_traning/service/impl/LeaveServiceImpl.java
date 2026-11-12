@@ -165,9 +165,17 @@ public class LeaveServiceImpl implements LeaveService {
 
     @Override
     @Transactional(readOnly = true)
-    public LeaveResponse getLeaveById(Long id) {
+    public LeaveResponse getLeaveById(Long id, String usernameOrEmail, boolean isAdmin) {
         LeaveRequest leave = leaveRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("LeaveRequest", "id", id));
+
+        if (!isAdmin) {
+            Employee employee = resolveEmployee(usernameOrEmail);
+            if (!leave.getEmployee().getId().equals(employee.getId())) {
+                throw new ResourceNotFoundException("LeaveRequest", "id", id);
+            }
+        }
+
         return mapToResponse(leave);
     }
 
